@@ -7,11 +7,11 @@ from torch.autograd import Variable
 
 from scipy import sparse
 
-def prepare_dataset(train_spkmat, train_conmat, time_length, num_neuron, num_dim):
+def prepare_dataset(batch_size, train_spkmat, train_conmat, time_length, num_neuron, num_dim, split = 10):
     train_spkmat = train_spkmat.reshape(-1, time_length, num_neuron, num_dim)
     train_conmat = train_conmat.reshape(-1, num_neuron, num_neuron)
-    train_spkmat = np.concatenate(np.split(train_spkmat, 10, axis = 1), axis = 0).reshape(-1, time_length//10, num_neuron, num_dim)
-    train_conmat = np.concatenate([train_conmat for i in range(10)], axis = 0).reshape(-1, num_neuron, num_neuron)
+    train_spkmat = np.concatenate(np.split(train_spkmat, split, axis = 1), axis = 0).reshape(-1, num_neuron, time_length//split,  num_dim)
+    train_conmat = np.concatenate([train_conmat for i in range(split)], axis = 0).reshape(-1, num_neuron, num_neuron)
     train_conmat = torch.Tensor(train_conmat)
     train_conmat[train_conmat == 0.3] = 1
     train_conmat[train_conmat == -1.2] = -1
@@ -20,23 +20,23 @@ def prepare_dataset(train_spkmat, train_conmat, time_length, num_neuron, num_dim
     train_data_loader = DataLoader(train_dataset, batch_size=batch_size)
     return train_data_loader
 
-def load_neuron_data(batch_size, time_length, num_neuron, num_dim, p_exc = 0.5, epsilon = 0.1, train_only = True):
+def load_neuron_data(batch_size, time_length, num_neuron, num_dim, max_size = 10, split = 10, p_exc = 0.5, epsilon = 0.1, train_only = True):
     if not train_only:
-        train_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_train_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())
-        train_conmat = np.array(sparse.load_npz("neuron_data/conn_train_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())
-        val_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_val_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())
-        val_conmat = np.array(sparse.load_npz("neuron_data/conn_val_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())
-        test_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_test_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())
-        test_conmat = np.array(sparse.load_npz("neuron_data/conn_test_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())
-        train_data_loader = prepare_dataset(train_spkmat, train_conmat, time_length, num_neuron, num_dim)
-        val_data_loader = prepare_dataset(val_spkmat, val_conmat, time_length, num_neuron, num_dim)
-        test_data_loader = prepare_dataset(test_spkmat, test_conmat, time_length, num_neuron, num_dim)
+        train_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_train_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())[:max_size]
+        train_conmat = np.array(sparse.load_npz("neuron_data/conn_train_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())[:max_size]
+        val_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_valid_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())[:max_size]
+        val_conmat = np.array(sparse.load_npz("neuron_data/conn_valid_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())[:max_size]
+        test_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_test_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())[:max_size]
+        test_conmat = np.array(sparse.load_npz("neuron_data/conn_test_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())[:max_size]
+        train_data_loader = prepare_dataset(batch_size, train_spkmat, train_conmat, time_length, num_neuron, num_dim, split)
+        val_data_loader = prepare_dataset(batch_size, val_spkmat, val_conmat, time_length, num_neuron, num_dim, split)
+        test_data_loader = prepare_dataset(batch_size, test_spkmat, test_conmat, time_length, num_neuron, num_dim, split)
     else:
         train_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_train_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())
         train_conmat = np.array(sparse.load_npz("neuron_data/conn_train_LIF_neurons{}_p_exc{}_epsilon{}_len{}.npz".format(num_neuron, p_exc, epsilon, time_length)).todense())
         test_data_loader = None
         val_data_loader = None
-        train_data_loader = prepare_dataset(train_spkmat, train_conmat, time_length, num_neuron, num_dim)
+        train_data_loader = prepare_dataset(batch_size, train_spkmat, train_conmat, time_length, num_neuron, num_dim, split)
     # split in the time dimension
     
     return train_data_loader, val_data_loader, test_data_loader
