@@ -40,8 +40,8 @@ class LIF_neurons_Sim(object):
 		self.N_neurons = N_neurons
 		self.NE = int(N_neurons*p_exc) # number of excitatory neurons
 		self.NI = N_neurons - self.NE  # number of inhibitory neurons
-		self.CE = int(epsilon * self.NE) # ~number of excitatory synapses per neuron
-		self.CI = int(epsilon * self.NI) # ~number of inhibitory synapses per neuron
+		self.CE = round(epsilon * self.NE) # ~number of excitatory synapses per neuron
+		self.CI = round(epsilon * self.NI) # ~number of inhibitory synapses per neuron
 		self.C_tot = int(self.CI+self.CE) # total number of synapses per neuron
 
 	def simulate_network_and_spike(self, T = 50000.0):
@@ -148,12 +148,22 @@ class LIF_neurons_Sim(object):
 		sources_ex = np.random.random_integers(1, NE, (N_neurons, CE))
 		sources_in = np.random.random_integers(NE + 1, N_neurons, (N_neurons, CI))
 
+		NE_array = np.arange(1,NE+1)
+		NI_array = np.arange(NE+1,N_neurons+1)
 		for n in range(N_neurons):
-		    nest.Connect(list(sources_ex[n]), [n + 1], syn_spec="excitatory")
-
+			if np.isin(n+1,sources_ex[n]):
+				n_idx, =np.where(n+1==NE_array)
+				tmp_NE = np.delete(NE_array,n_idx)
+				tmp_NE_p = np.random.permutation(tmp_NE)
+				sources_ex[n] = tmp_NE_p[:CE]
+			nest.Connect(list(sources_ex[n]), [n + 1], syn_spec="excitatory")
 		for n in range(N_neurons):
-		    nest.Connect(list(sources_in[n]), [n + 1], syn_spec="inhibitory")
-
+			if np.isin(n+1,sources_in[n]):
+				n_idx, =np.where(n+1==NI_array)
+				tmp_NI = np.delete(NI_array,n_idx)
+				tmp_NI_p = np.random.permutation(tmp_NI)
+				sources_in[n] = tmp_NI_p[:CI]   
+			nest.Connect(list(sources_in[n]), [n + 1], syn_spec="inhibitory")
 
 		## Extracting connectivity matrix
 		# Connectivity[source,target] = weight
