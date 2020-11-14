@@ -73,7 +73,7 @@ log = None
 #train_loader, valid_loader, test_loader, loc_max, loc_min, vel_max, vel_min = load_data(
     #args.batch_size, args.suffix)
 
-train_loader,val_loader,test_loader = load_neuron_data(args.batch_size, args.split * args.timesteps, args.num_, args.dim)
+train_loader,val_loader,test_loader = load_neuron_data(args.batch_size, args.split * args.timesteps, args.num_atoms, args.dim)
 
 
 
