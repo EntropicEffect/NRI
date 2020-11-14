@@ -25,7 +25,7 @@ parser.add_argument('--lr', type=float, default=0.0005,
                     help='Initial learning rate.')
 parser.add_argument('--hidden', type=int, default=256,
                     help='Number of hidden units.')
-parser.add_argument('--num_atoms', type=int, default=5,
+parser.add_argument('--num_atoms', type=int, default=12,
                     help='Number of atoms in simulation.')
 parser.add_argument('--num-layers', type=int, default=2,
                     help='Number of LSTM layers.')
@@ -40,10 +40,12 @@ parser.add_argument('--save-folder', type=str, default='logs',
 parser.add_argument('--load-folder', type=str, default='',
                     help='Where to load the trained model if finetunning. ' +
                          'Leave empty to train from scratch')
-parser.add_argument('--dims', type=int, default=4,
+parser.add_argument('--dims', type=int, default=1,
                     help='The number of dimensions (position + velocity).')
-parser.add_argument('--timesteps', type=int, default=49,
+parser.add_argument('--timesteps', type=int, default=4500,
                     help='The number of time steps per sample.')
+parser.add_argument('--split', type=int, default=10,
+                    help='The number of split for one simuation')
 parser.add_argument('--prediction-steps', type=int, default=10, metavar='N',
                     help='Num steps to predict before using teacher forcing.')
 parser.add_argument('--lr-decay', type=int, default=200,
@@ -67,31 +69,12 @@ if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
 log = None
-# Save model and meta-data. Always saves in a new folder.
-if args.save_folder:
-    exp_counter = 0
-    now = datetime.datetime.now()
-    timestamp = now.isoformat()
-    save_folder = '{}/exp{}/'.format(args.save_folder, timestamp)
-    while os.path.isdir(save_folder):
-        exp_counter += 1
-        save_folder = os.path.join(args.save_folder,
-                                   'exp{}'.format(exp_counter))
-    os.mkdir(save_folder)
-    meta_file = os.path.join(save_folder, 'metadata.pkl')
-    model_file = os.path.join(save_folder, 'model.pt')
 
-    log_file = os.path.join(save_folder, 'log.txt')
-    log = open(log_file, 'w')
+#train_loader, valid_loader, test_loader, loc_max, loc_min, vel_max, vel_min = load_data(
+    #args.batch_size, args.suffix)
 
-    pickle.dump({'args': args}, open(meta_file, "wb"))
+train_loader,val_loader,test_loader = load_neuron_data(args.batch_size, args.split * args.timesteps, args.num_, args.dim)
 
-else:
-    print("WARNING: No save_folder provided!" +
-          "Testing (within this script) will throw an error.")
-
-train_loader, valid_loader, test_loader, loc_max, loc_min, vel_max, vel_min = load_data(
-    args.batch_size, args.suffix)
 
 
 class RecurrentBaseline(nn.Module):
