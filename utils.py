@@ -42,7 +42,7 @@ def load_neuron_data(batch_size, time_length, num_neuron, num_dim, max_size = 10
     return train_data_loader, val_data_loader, test_data_loader
 
 
-def load_neuron_data2(batch_size, time_length, num_neuron, num_dim, max_size = 10, split = 10, p_exc = 0.5, epsilon = 0.1, train_only = True):
+def load_neuron_data2(batch_size, time_length, num_neuron, num_dim, max_size = 10, split = 10, p_exc = 0.5, Ie_factor=3.0,epsilon = 0.1, train_only = True):
     # for loading renamed neuron data where Ie_factor is added in the name
     if not train_only:
         train_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_train_LIF_neurons{}_p_exc{}_epsilon{}_Ie_factor{}_len{}.npz".format(num_neuron, p_exc, epsilon, Ie_factor,time_length)).todense())[:max_size]
