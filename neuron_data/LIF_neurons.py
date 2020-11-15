@@ -51,7 +51,8 @@ class LIF_neurons_Sim(object):
 		# Output:
 		# connectivity: N_neuron x N_neuron matrix
 		# spk_mat:      T x N_neuron matrix of spiking time series per neuron
-
+        
+		tmpfolder ='NestData'+str(np.random.randint(1,100))
 		## Randomization of dynamics
 		nest.ResetKernel()
 		msd = int(np.ceil(100000*np.random.rand(1)))
@@ -61,9 +62,9 @@ class LIF_neurons_Sim(object):
 
 
 		## Output files path for NEST tmp file
-		if os.path.isdir('nestData'):
-			os.system("rm -r nestData")
-		os.system("mkdir nestData")
+		if os.path.isdir(tmpfolder):
+			os.system("rm -r "+tmpfolder)
+		os.system("mkdir "+tmpfolder)
 
 		nest.ResetKernel()
 		startbuild = time.time()
@@ -122,12 +123,12 @@ class LIF_neurons_Sim(object):
 
 
 		## Defining the tmporary output files of the spikes
-		nest.SetStatus(espikes, [{"label": "nestData/ex_neurons",
+		nest.SetStatus(espikes, [{"label": tmpfolder+"/ex_neurons",
 		                      "withtime": True,
 		                      "withgid": True,
 		                      "to_file": True}])
 
-		nest.SetStatus(ispikes, [{"label": "nestData/in_neurons",
+		nest.SetStatus(ispikes, [{"label": tmpfolder+"/in_neurons",
 		                      "withtime": True,
 		                      "withgid": True,
 		                      "to_file": True}])
@@ -202,8 +203,8 @@ class LIF_neurons_Sim(object):
 
 
 		# Extracting the spikes
-		ex_spk=np.loadtxt("nestData/ex_neurons-%d-0.gdf"%(N_neurons+1))
-		in_spk=np.loadtxt("nestData/in_neurons-%d-0.gdf"%(N_neurons+2))
+		ex_spk=np.loadtxt(tmpfolder+"/ex_neurons-%d-0.gdf"%(N_neurons+1))
+		in_spk=np.loadtxt(tmpfolder+"/in_neurons-%d-0.gdf"%(N_neurons+2))
 
 		spk_mat = np.zeros((N_neurons,int(simtime)))
 
@@ -217,7 +218,7 @@ class LIF_neurons_Sim(object):
 
 		spk_mat = spk_mat.T
 
-		os.system("rm -r nestData")
+		os.system("rm -r "+tmpfolder)
 
 		return spk_mat, connectivity
 
