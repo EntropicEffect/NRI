@@ -1,4 +1,5 @@
 from LIF_neurons import LIF_neurons_Sim
+from LIF_neurons_dynamic import LIF_neurons_dynamic_Sim
 import time
 import numpy as np 
 import argparse
@@ -7,6 +8,8 @@ import scipy.sparse as sparse
 parser = argparse.ArgumentParser()
 
 # number of simulations
+parser.add_argument('--simulation', type=str, default='LIF',
+                    help='What kind of simulation to generate.')
 parser.add_argument('--num-train', type=int, default=50000,
                     help='Number of training simulations to generate.')
 parser.add_argument('--num-valid', type=int, default=10000,
@@ -37,12 +40,18 @@ parser.add_argument('--seed', type=int, default=0,
 
 args = parser.parse_args()
 
+if args.simulation == 'LIF':
+    sim = LIF_neurons_Sim(N_neurons = args.N_neurons,p_exc = args.p_exc,epsilon = args.epsilon)
+    suffix = '_LIF_neurons'
+elif args.simulation == 'LIF_dynamic':
+    sim = LIF_neurons_dynamic_Sim(N_neurons = args.N_neurons,p_exc = args.p_exc,epsilon = args.epsilon)
+    suffix = '_LIF_dynamic_neurons'
+else:
+    raise ValueError('Simulation {} not implemented'.format(args.simulation))
 
-sim = LIF_neurons_Sim(N_neurons = args.N_neurons,p_exc = args.p_exc,epsilon = args.epsilon)
-suffix = '_LIF_neurons'
 
 
-suffix += str(args.N_neurons)+'_p_exc'+str(args.p_exc)+'_epsilon'+str(args.epsilon)
+suffix += str(args.N_neurons)+'_p_exc'+str(args.p_exc)+'_epsilon'+str(args.epsilon)+'_Ie_factor'+str(args.Ie_factor)
 print(suffix)
 
 
