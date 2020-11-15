@@ -228,3 +228,44 @@ class LIF_neurons_dynamic_Sim(object):
 		os.system("rm -r nestData")
 		return spk_mat, conn
 
+def extract_spk_matrix(N_neurons,n_phase):
+    N = N_neurons
+    spk= [[] for x in range(N)]
+    ISIs= [[] for x in range(N)]
+    ex_spk=np.loadtxt("Data/ex_neurons-%d-0.gdf"%(N+1))
+    in_spk=np.loadtxt("Data/in_neurons-%d-0.gdf"%(N+2))
+
+    spk_mat = np.zeros((N_neurons,int(simtime*n_phase)+1))
+
+    count = 0
+
+    for i in range(len(ex_spk)):
+        spk_mat[int(ex_spk[i,0])-1,int(np.floor(ex_spk[i,1]))] = 1
+
+    for i in range(len(in_spk)):
+        spk_mat[int(in_spk[i,0])-1,int(np.floor(in_spk[i,1]))] = 1
+    return spk_mat
+
+def extract_conn_matrix(N_neurons, nodes_ex,nodes_in):
+###############################################################################
+# Extracting the connectivity matrix
+###############################################################################
+    connectivity=np.zeros((N_neurons,N_neurons))
+
+    conn_ex=nest.GetConnections(nodes_ex)
+    conn_ex_source= nest.GetStatus(conn_ex, keys='source')
+    conn_ex_target= nest.GetStatus(conn_ex, keys='target')
+    conn_ex_weight= nest.GetStatus(conn_ex, keys='weight')
+
+    conn_in=nest.GetConnections(nodes_in)
+    conn_in_source= nest.GetStatus(conn_in, keys='source')
+    conn_in_target= nest.GetStatus(conn_in, keys='target')
+    conn_in_weight= nest.GetStatus(conn_in, keys='weight')
+
+    for i in range(len(conn_ex_source)):
+        if conn_ex_source[i]<= N_neurons and conn_ex_target[i]<= N_neurons:
+            connectivity[conn_ex_source[i]-1,conn_ex_target[i]-1]=conn_ex_weight[i]
+    for i in range(len(conn_in_source)):
+        if conn_in_source[i]<=N_neurons and conn_in_target[i]<= N_neurons:
+            connectivity[conn_in_source[i]-1,conn_in_target[i]-1]=conn_in_weight[i]
+    return connectivity
