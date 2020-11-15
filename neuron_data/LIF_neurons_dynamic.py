@@ -184,12 +184,12 @@ class LIF_neurons_dynamic_Sim(object):
 		        ###############################################################################
 		        # Defining output files
 		        ###############################################################################
-		        nest.SetStatus(espikes, [{"label": "Data/ex_neurons",
+		        nest.SetStatus(espikes, [{"label": "nestData/ex_neurons",
 		                                  "withtime": True,
 		                                  "withgid": True,
 		                                  "to_file": True}])
 
-		        nest.SetStatus(ispikes, [{"label": "Data/in_neurons",
+		        nest.SetStatus(ispikes, [{"label": "nestData/in_neurons",
 		                                  "withtime": True,
 		                                  "withgid": True,
 		                                  "to_file": True}])
