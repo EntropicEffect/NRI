@@ -48,6 +48,31 @@ def load_neuron_data(batch_size, time_length, num_neuron, num_dim, max_size = 10
     return train_data_loader, val_data_loader, test_data_loader
 
 
+def load_neuron_data2(batch_size, time_length, num_neuron, num_dim, max_size = 10, split = 10, p_exc = 0.5, Ie_factor=3.0,epsilon = 0.1, train_only = True):
+    # for loading renamed neuron data where Ie_factor is added in the name
+    if not train_only:
+        train_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_train_LIF_neurons{}_p_exc{}_epsilon{}_Ie_factor{}_len{}.npz".format(num_neuron, p_exc, epsilon, Ie_factor,time_length)).todense())[:max_size]
+        train_conmat = np.array(sparse.load_npz("neuron_data/conn_train_LIF_neurons{}_p_exc{}_epsilon{}_Ie_factor{}_len{}.npz".format(num_neuron, p_exc, epsilon, Ie_factor,time_length)).todense())[:max_size]
+        val_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_valid_LIF_neurons{}_p_exc{}_epsilon{}_Ie_factor{}_len{}.npz".format(num_neuron, p_exc, epsilon, Ie_factor,time_length)).todense())[:max_size]
+        val_conmat = np.array(sparse.load_npz("neuron_data/conn_valid_LIF_neurons{}_p_exc{}_epsilon{}_Ie_factor{}_len{}.npz".format(num_neuron, p_exc, epsilon, Ie_factor,time_length)).todense())[:max_size]
+        test_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_test_LIF_neurons{}_p_exc{}_epsilon{}_Ie_factor{}_len{}.npz".format(num_neuron, p_exc, epsilon, Ie_factor,time_length)).todense())[:max_size]
+        test_conmat = np.array(sparse.load_npz("neuron_data/conn_test_LIF_neurons{}_p_exc{}_epsilon{}_Ie_factor{}_len{}.npz".format(num_neuron, p_exc, epsilon, Ie_factor,time_length)).todense())[:max_size]
+        train_data_loader = prepare_dataset(batch_size, train_spkmat, train_conmat, time_length, num_neuron, num_dim, split)
+        val_data_loader = prepare_dataset(batch_size, val_spkmat, val_conmat, time_length, num_neuron, num_dim, split)
+        test_data_loader = prepare_dataset(batch_size, test_spkmat, test_conmat, time_length, num_neuron, num_dim, split)
+    else:
+        train_spkmat = np.array(sparse.load_npz("neuron_data/spkmat_train_LIF_neurons{}_p_exc{}_epsilon{}_Ie_factor{}_len{}.npz".format(num_neuron, p_exc, epsilon, Ie_factor,time_length)).todense())
+        train_conmat = np.array(sparse.load_npz("neuron_data/conn_train_LIF_neurons{}_p_exc{}_epsilon{}_Ie_factor{}_len{}.npz".format(num_neuron, p_exc, epsilon, Ie_factor,time_length)).todense())
+        test_data_loader = None
+        val_data_loader = None
+        train_data_loader = prepare_dataset(batch_size, train_spkmat, train_conmat, time_length, num_neuron, num_dim, split)
+    # split in the time dimension
+    
+    return train_data_loader, val_data_loader, test_data_loader
+
+
+
+
 def my_softmax(input, axis=1):
     trans_input = input.transpose(axis, 0).contiguous()
     soft_max_1d = F.softmax(trans_input)

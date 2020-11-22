@@ -44,14 +44,15 @@ class LIF_neurons_Sim(object):
 		self.CI = round(epsilon * self.NI) # ~number of inhibitory synapses per neuron
 		self.C_tot = int(self.CI+self.CE) # total number of synapses per neuron
 
-	def simulate_network_and_spike(self, T = 50000.0):
+	def simulate_network_and_spike(self, T = 50000.0, Ie_factor=3.0):
 		# this function build the random connectivity network of neurons and simulate spiking 
 		# time series for each neuron
 
 		# Output:
 		# connectivity: N_neuron x N_neuron matrix
 		# spk_mat:      T x N_neuron matrix of spiking time series per neuron
-
+        
+		tmpfolder ='NestData'+str(np.random.randint(1,100))
 		## Randomization of dynamics
 		nest.ResetKernel()
 		msd = int(np.ceil(100000*np.random.rand(1)))
@@ -61,9 +62,9 @@ class LIF_neurons_Sim(object):
 
 
 		## Output files path for NEST tmp file
-		if os.path.isdir('nestData'):
-			os.system("rm -r nestData")
-		os.system("mkdir nestData")
+		if os.path.isdir(tmpfolder):
+			os.system("rm -r "+tmpfolder)
+		os.system("mkdir "+tmpfolder)
 
 		nest.ResetKernel()
 		startbuild = time.time()
@@ -114,20 +115,20 @@ class LIF_neurons_Sim(object):
 		# Here using tonic external input current uniformly sampled U(1.2,1.4)
 		for neuron in nodes_ex:
 			nest.SetStatus([neuron], {"V_m": 0.0+(theta-0.0)*np.random.rand()})
-			nest.SetStatus([neuron], {"I_e": 1.0*(1.2+(1.4-1.2)*np.random.rand())})
+			nest.SetStatus([neuron], {"I_e": Ie_factor*(1.2+(1.4-1.2)*np.random.rand())})
 
 		for neuron in nodes_in:
 			nest.SetStatus([neuron], {"V_m": 0.0+(theta-0.0)*np.random.rand()})
-			nest.SetStatus([neuron], {"I_e": 1.0*(1.2+(1.4-1.2)*np.random.rand())})
+			nest.SetStatus([neuron], {"I_e": Ie_factor*(1.2+(1.4-1.2)*np.random.rand())})
 
 
 		## Defining the tmporary output files of the spikes
-		nest.SetStatus(espikes, [{"label": "nestData/ex_neurons",
+		nest.SetStatus(espikes, [{"label": tmpfolder+"/ex_neurons",
 		                      "withtime": True,
 		                      "withgid": True,
 		                      "to_file": True}])
 
-		nest.SetStatus(ispikes, [{"label": "nestData/in_neurons",
+		nest.SetStatus(ispikes, [{"label": tmpfolder+"/in_neurons",
 		                      "withtime": True,
 		                      "withgid": True,
 		                      "to_file": True}])
@@ -202,8 +203,8 @@ class LIF_neurons_Sim(object):
 
 
 		# Extracting the spikes
-		ex_spk=np.loadtxt("nestData/ex_neurons-%d-0.gdf"%(N_neurons+1))
-		in_spk=np.loadtxt("nestData/in_neurons-%d-0.gdf"%(N_neurons+2))
+		ex_spk=np.loadtxt(tmpfolder+"/ex_neurons-%d-0.gdf"%(N_neurons+1))
+		in_spk=np.loadtxt(tmpfolder+"/in_neurons-%d-0.gdf"%(N_neurons+2))
 
 		spk_mat = np.zeros((N_neurons,int(simtime)))
 
@@ -217,7 +218,7 @@ class LIF_neurons_Sim(object):
 
 		spk_mat = spk_mat.T
 
-		os.system("rm -r nestData")
+		os.system("rm -r "+tmpfolder)
 
 		return spk_mat, connectivity
 
