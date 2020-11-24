@@ -11,10 +11,16 @@ def prepare_dataset(batch_size, train_spkmat, train_conmat, time_length, num_neu
     train_spkmat = train_spkmat.reshape(-1, time_length, num_neuron, num_dim)
     train_conmat = train_conmat.reshape(-1, num_neuron, num_neuron)
     train_spkmat = np.concatenate(np.split(train_spkmat, split, axis = 1), axis = 0).reshape(-1, num_neuron, time_length//split,  num_dim)
-    train_conmat = np.concatenate([train_conmat for i in range(split)], axis = 0).reshape(-1, num_neuron, num_neuron)
+    
+    new_conmat = []
+    for i in range(train_conmat.shape[0]):
+        new_conmat.append(train_conmat[i][~np.eye(num_neuron,dtype=bool)].reshape(1,-1))
+    new_conmat = np.concatenate(new_conmat, axis = 0)
+    
+    train_conmat = np.concatenate([new_conmat for i in range(split)], axis = 0).reshape(-1, num_neuron * (num_neuron-1))
     train_conmat = torch.Tensor(train_conmat)
     train_conmat[train_conmat == 0.3] = 1
-    train_conmat[train_conmat == -1.2] = -1
+    train_conmat[train_conmat == -1.2] = 2
     train_conmat = train_conmat.long()
     train_dataset = TensorDataset(torch.FloatTensor(train_spkmat), train_conmat)
     train_data_loader = DataLoader(train_dataset, batch_size=batch_size)
