@@ -52,7 +52,7 @@ class LIF_neurons_Sim(object):
 		# connectivity: N_neuron x N_neuron matrix
 		# spk_mat:      T x N_neuron matrix of spiking time series per neuron
         
-		tmpfolder ='NestData'+str(np.random.randint(1,100))
+		tmpfolder ='NestData'+str(np.random.randint(1,10000))
 		## Randomization of dynamics
 		nest.ResetKernel()
 		msd = int(np.ceil(100000*np.random.rand(1)))
